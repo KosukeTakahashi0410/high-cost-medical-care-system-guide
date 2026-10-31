@@ -1,0 +1,52 @@
+---
+import '../styles/global.css';
+import { TOKYO_R8 } from '../lib/rules/tokyo-r8';
+
+interface Props {
+  title: string;
+  description?: string;
+}
+
+const { title, description = '指定難病の医療費助成（受給者証）の更新で、自分に必要な書類と理由がわかるツール。入力はブラウザの中だけで完結します。' } = Astro.props;
+// 投げ銭のURLは OFUSE 登録後に差し込む
+const ofuseUrl = '';
+---
+
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={description} />
+    <meta name="referrer" content="no-referrer" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>{title}</title>
+  </head>
+  <body>
+    <header class="site-header no-print">
+      <a href="/" class="brand">難病更新ナビ</a>
+      <span class="pill">{TOKYO_R8.prefecture}・{TOKYO_R8.fiscalYearLabel}</span>
+    </header>
+    <main>
+      <slot />
+    </main>
+    <footer class="site-footer no-print">
+      <p>
+        入力した内容はこの端末のブラウザにだけ保存され、外部には一切送信されません。推奨ブラウザ：Google Chrome。
+      </p>
+      <p>
+        出典：<a href={TOKYO_R8.sourceUrl} rel="noopener noreferrer">東京都「特定医療費更新手続のご案内」{TOKYO_R8.fiscalYearLabel}版</a>
+        （最終確認日 {TOKYO_R8.checkedAt}）。最終的な判断は、東京都・お住まいの区市町村の案内に従ってください。
+      </p>
+      <p>
+        <a href="/about/">このツールについて</a>
+        {ofuseUrl && (
+          <>
+            {' ・ '}
+            <a href={ofuseUrl} rel="noopener noreferrer">役に立ったら応援する（OFUSE）</a>
+          </>
+        )}
+      </p>
+    </footer>
+  </body>
+</html>

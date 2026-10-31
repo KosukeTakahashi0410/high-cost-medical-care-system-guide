@@ -1,0 +1,21 @@
+---
+import Base from '../layouts/Base.astro';
+import Navi from '../components/Navi';
+import { TOKYO_R8 } from '../lib/rules/tokyo-r8';
+---
+
+<Base title="難病更新ナビ">
+  <section class="intro">
+    <h1>指定難病の更新、<br />出す書類がすぐわかる。</h1>
+    <p>
+      {TOKYO_R8.prefecture}の特定医療費（指定難病）受給者証の更新手続きで、
+      「自分はどの条件に当てはまるのか」「どの書類が必要なのか」を、質問に答えるだけで整理します。
+    </p>
+    <ul class="points">
+      <li>書類ごとに<strong>必要な理由</strong>と<strong>省略できる理由</strong>を表示</li>
+      <li>記録しておけば、来年は<strong>前回との違い</strong>から確認できる</li>
+      <li>名前や番号は入力しません。データは<strong>この端末の外に出ません</strong></li>
+    </ul>
+  </section>
+  <Navi client:load />
+</Base>
