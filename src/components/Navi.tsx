@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'preact/hooks';
+import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { DEFAULT_ANSWERS, type Answers } from '../lib/answers';
 import { deriveConditions, resolveDocuments } from '../lib/documents';
 import { diffRecords, toRecord } from '../lib/history';
@@ -15,6 +15,16 @@ type Screen = 'home' | 'wizard' | 'result';
 
 const rules = TOKYO_R8;
 
+/** 画面の切り替えを View Transitions で包む（未対応のブラウザではそのまま切り替える） */
+function transition(update: () => void) {
+  const doc = document as Document & { startViewTransition?: (cb: () => void) => unknown };
+  if (doc.startViewTransition && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    doc.startViewTransition(update);
+  } else {
+    update();
+  }
+}
+
 export default function Navi() {
   const [ready, setReady] = useState(false);
   const [store, setStore] = useState<StoreData>({ version: 1, records: [] });
@@ -22,6 +32,7 @@ export default function Navi() {
   const [answers, setAnswers] = useState<Answers>(DEFAULT_ANSWERS);
   const [submitted, setSubmitted] = useState<Partial<Record<DocId, boolean>>>({});
   const [message, setMessage] = useState('');
+  const top = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const data = load();
@@ -32,6 +43,17 @@ export default function Navi() {
     }
     setReady(true);
   }, []);
+
+  useEffect(() => {
+    if (!message) return;
+    const timer = setTimeout(() => setMessage(''), 4000);
+    return () => clearTimeout(timer);
+  }, [message]);
+
+  function go(next: Screen) {
+    transition(() => setScreen(next));
+    top.current?.scrollIntoView?.({ block: 'start', behavior: 'smooth' });
+  }
 
   /** 回答とチェックは、そのたびに下書きとして端末に残す */
   function persist(next: StoreData): boolean {
@@ -53,8 +75,7 @@ export default function Navi() {
 
   function start(from: Answers) {
     updateDraft(normalizeAnswers(from), {});
-    setScreen('wizard');
-    setMessage('');
+    go('wizard');
   }
 
   function saveRecord() {
@@ -64,7 +85,11 @@ export default function Navi() {
       docs,
       submitted,
     );
-    setMessage(persist(upsertRecord(store, record)) ? `${rules.fiscalYearLabel}の記録として保存しました。来年はこの記録と比べられます。` : 'このブラウザでは保存できませんでした。「ファイルに書き出す」で保存してください。');
+    setMessage(
+      persist(upsertRecord(store, record))
+        ? `${rules.fiscalYearLabel}の記録として保存しました`
+        : '保存できませんでした。「ファイルに書き出す」をお使いください',
+    );
   }
 
   function exportFile() {
@@ -85,10 +110,10 @@ export default function Navi() {
         setAnswers(data.draft.answers);
         setSubmitted(data.draft.submitted);
       }
-      setScreen('home');
-      setMessage(`読み込みました（記録 ${data.records.length} 件）。`);
+      go('home');
+      setMessage(`読み込みました（記録 ${data.records.length} 件）`);
     } catch (e) {
-      setMessage(e instanceof Error ? e.message : '読み込めませんでした。');
+      setMessage(e instanceof Error ? e.message : '読み込めませんでした');
     }
   }
 
@@ -98,48 +123,52 @@ export default function Navi() {
     setStore({ version: 1, records: [] });
     setAnswers(DEFAULT_ANSWERS);
     setSubmitted({});
-    setScreen('home');
-    setMessage('この端末のデータをすべて消しました。');
+    go('home');
+    setMessage('この端末のデータをすべて消しました');
   }
 
   if (!ready) return <p class="muted">読み込み中…</p>;
 
   return (
-    <div class="navi">
+    <div ref={top} class="navi">
       {message && (
-        <p class="toast" role="status">
+        <p class="toast" role="status" key={message}>
           {message}
         </p>
       )}
 
       {screen === 'home' && (
-        <section class="card home">
-          <h2>{rules.fiscalYearLabel}の更新をはじめる</h2>
-          <p>質問に答えると、あなたに必要な書類と、その理由がわかります。</p>
+        <section class="section screen-in">
+          <div>
+            <p class="eyebrow">{rules.fiscalYearLabel}の更新</p>
+            <h2 class="section-title">質問に答えて、書類をそろえる</h2>
+            <p class="lead">
+              {prev
+                ? `前回（${prev.fiscalYearLabel}）の記録があります。前回の答えを確かめながら進めると、変わった点だけを確認できます。`
+                : '約2分で答えられます。記録しておくと、来年は前回との違いから確認できます。'}
+            </p>
+          </div>
           <div class="actions">
             {prev ? (
               <>
-                <button class="primary" onClick={() => start(prev.answers)}>
-                  前回（{prev.fiscalYearLabel}）の答えから始める
+                <button class="btn btn-primary" onClick={() => start(prev.answers)}>
+                  前回の答えから始める
                 </button>
-                <button onClick={() => start(DEFAULT_ANSWERS)}>最初から答える</button>
+                <button class="btn" onClick={() => start(DEFAULT_ANSWERS)}>
+                  最初から答える
+                </button>
               </>
             ) : (
-              <button class="primary" onClick={() => start(DEFAULT_ANSWERS)}>
-                質問に答える（約2分）
+              <button class="btn btn-primary" onClick={() => start(DEFAULT_ANSWERS)}>
+                質問に答える
               </button>
             )}
             {store.draft && (
-              <button onClick={() => setScreen('result')}>
-                {thisYear ? `保存した${rules.fiscalYearLabel}の内容を見る` : '前回の続きから'}
+              <button class="btn-text" onClick={() => go('result')}>
+                {thisYear ? `保存した${rules.fiscalYearLabel}の内容を見る` : '前回の続きを見る'}
               </button>
             )}
           </div>
-          {!prev && (
-            <p class="muted small">
-              一度記録しておくと、来年は「前回どの書類を出したか」「何が変わったか」から確認できます。
-            </p>
-          )}
         </section>
       )}
 
@@ -148,13 +177,13 @@ export default function Navi() {
           answers={answers}
           prevAnswers={prev?.answers}
           onChange={(a) => updateDraft(normalizeAnswers(a))}
-          onDone={() => setScreen('result')}
-          onCancel={() => setScreen('home')}
+          onDone={() => go('result')}
+          onCancel={() => go('home')}
         />
       )}
 
       {screen === 'result' && (
-        <>
+        <div class="screen-in">
           <Result conditions={conditions} rules={rules} />
           {diff && prev && <Diff diff={diff} prevLabel={prev.fiscalYearLabel} docs={docs} />}
           <Checklist
@@ -163,20 +192,25 @@ export default function Navi() {
             submittedLastTime={diff?.submittedLastTime ?? []}
             onToggle={(id, value) => updateDraft(answers, { ...submitted, [id]: value })}
           />
-          <section class="card no-print">
-            <h2>記録する</h2>
-            <p class="small">
+          <section class="section no-print">
+            <p class="eyebrow">記録</p>
+            <h2 class="section-title">来年のために残す</h2>
+            <p class="lead">
               保存するのは「どの条件に当てはまり、どの書類を出したか」だけです。氏名や番号などの中身は保存しません。
             </p>
             <div class="actions">
-              <button class="primary" onClick={saveRecord}>
+              <button class="btn btn-primary" onClick={saveRecord}>
                 {rules.fiscalYearLabel}の記録として保存
               </button>
-              <button onClick={() => window.print()}>印刷する／PDFで保存</button>
-              <button onClick={() => setScreen('wizard')}>答えを直す</button>
+              <button class="btn" onClick={() => window.print()}>
+                印刷・PDFで保存
+              </button>
+              <button class="btn-text" onClick={() => go('wizard')}>
+                答えを直す
+              </button>
             </div>
           </section>
-        </>
+        </div>
       )}
 
       <DataMenu onExport={exportFile} onImport={importFile} onClear={clearData} />

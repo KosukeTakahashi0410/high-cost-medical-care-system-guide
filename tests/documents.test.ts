@@ -108,21 +108,30 @@ describe('resolveDocuments', () => {
     expect(statuses(answers()).welfareCert).toBe('omitted');
   });
 
-  describe('軽症かつ高額・高額かつ長期', () => {
-    it('どちらかを申請するなら医療費の書類が必要', () => {
-      expect(statuses(answers({ keishoKogaku: 'apply', kogakuChoki: 'no' })).medicalCostProof).toBe('required');
-      expect(statuses(answers({ keishoKogaku: 'not_eligible', kogakuChoki: 'yes' })).medicalCostProof).toBe('required');
+  describe('医療費（軽症かつ高額・高額かつ長期）', () => {
+    it('基準を超えた月があれば医療費の書類が必要', () => {
+      expect(statuses(answers({ medicalCost: 'mild_high' })).medicalCostProof).toBe('required');
+      expect(statuses(answers({ medicalCost: 'long_high' })).medicalCostProof).toBe('required');
     });
 
-    it('わからないなら要確認、どちらも申請しないなら不要', () => {
-      expect(statuses(answers({ keishoKogaku: 'unknown', kogakuChoki: 'no' })).medicalCostProof).toBe('optional');
-      expect(statuses(answers({ keishoKogaku: 'not_eligible', kogakuChoki: 'no' })).medicalCostProof).toBe('omitted');
+    it('わからないなら要確認、ないなら不要', () => {
+      expect(statuses(answers({ medicalCost: 'unknown' })).medicalCostProof).toBe('optional');
+      expect(statuses(answers({ medicalCost: 'none' })).medicalCostProof).toBe('omitted');
     });
 
-    it('申請書の☑の注意を出す', () => {
-      expect(notesOf(answers({ keishoKogaku: 'not_eligible' }), 'application')).toContain('該当しない欄に☑');
-      expect(notesOf(answers({ kogakuChoki: 'yes' }), 'application')).toContain('高額かつ長期');
-      expect(notesOf(answers({ kogakuChoki: 'yes' }), 'medicalCostProof')).toContain('変更申請');
+    it('申請書の☑と変更申請の注意を出す', () => {
+      expect(notesOf(answers({ medicalCost: 'none' }), 'application')).toContain('該当しない欄に☑');
+      expect(notesOf(answers({ medicalCost: 'long_high' }), 'application')).toContain('高額かつ長期');
+      expect(notesOf(answers({ medicalCost: 'mild_high' }), 'application')).not.toContain('高額かつ長期');
+      expect(notesOf(answers({ medicalCost: 'long_high' }), 'medicalCostProof')).toContain('変更申請');
+    });
+
+    it('50,000円超が6か月以上なら、軽症かつ高額と高額かつ長期の両方に当てはまる', () => {
+      const ids = deriveConditions(answers({ medicalCost: 'long_high' }), TOKYO_R8).map((c) => c.id);
+      expect(ids).toEqual(expect.arrayContaining(['keishoKogaku', 'kogakuChoki']));
+      const mild = deriveConditions(answers({ medicalCost: 'mild_high' }), TOKYO_R8).map((c) => c.id);
+      expect(mild).toContain('keishoKogaku');
+      expect(mild).not.toContain('kogakuChoki');
     });
   });
 
@@ -166,7 +175,7 @@ describe('deriveConditions', () => {
   });
 
   it('情報連携と軽症高額を表示する', () => {
-    const ids = deriveConditions(answers({ mynumberLink: true, keishoKogaku: 'apply' }), TOKYO_R8).map((c) => c.id);
+    const ids = deriveConditions(answers({ mynumberLink: true, medicalCost: 'mild_high' }), TOKYO_R8).map((c) => c.id);
     expect(ids).toEqual(expect.arrayContaining(['mynumberLink', 'keishoKogaku']));
   });
 });

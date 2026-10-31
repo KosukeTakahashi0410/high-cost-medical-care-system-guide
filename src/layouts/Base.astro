@@ -1,15 +1,17 @@
 ---
 import '../styles/global.css';
 import { TOKYO_R8 } from '../lib/rules/tokyo-r8';
+import { CONTACT_URL, OFUSE_URL } from '../lib/site';
 
 interface Props {
   title: string;
   description?: string;
 }
 
-const { title, description = '指定難病の医療費助成（受給者証）の更新で、自分に必要な書類と理由がわかるツール。入力はブラウザの中だけで完結します。' } = Astro.props;
-// 投げ銭のURLは OFUSE 登録後に差し込む
-const ofuseUrl = '';
+const {
+  title,
+  description = '指定難病の医療費助成（受給者証）の更新で、自分に必要な書類と理由がわかる非公式ツール。入力はブラウザの中だけで完結します。',
+} = Astro.props;
 ---
 
 <!doctype html>
@@ -19,34 +21,35 @@ const ofuseUrl = '';
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content={description} />
     <meta name="referrer" content="no-referrer" />
+    <meta name="theme-color" content="#000000" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <title>{title}</title>
   </head>
   <body>
-    <header class="site-header no-print">
-      <a href="/" class="brand">難病更新ナビ</a>
-      <span class="pill">{TOKYO_R8.prefecture}・{TOKYO_R8.fiscalYearLabel}</span>
+    <header class="nav no-print">
+      <div class="wrap">
+        <a href="/" class="nav-brand">難病更新ナビ</a>
+        <span class="nav-unofficial">非公式</span>
+        <a href="/about/" class="nav-link">このツールについて</a>
+      </div>
     </header>
     <main>
       <slot />
     </main>
-    <footer class="site-footer no-print">
-      <p>
-        入力した内容はこの端末のブラウザにだけ保存され、外部には一切送信されません。推奨ブラウザ：Google Chrome。
-      </p>
-      <p>
-        出典：<a href={TOKYO_R8.sourceUrl} rel="noopener noreferrer">東京都「特定医療費更新手続のご案内」{TOKYO_R8.fiscalYearLabel}版</a>
-        （最終確認日 {TOKYO_R8.checkedAt}）。最終的な判断は、東京都・お住まいの区市町村の案内に従ってください。
-      </p>
-      <p>
-        <a href="/about/">このツールについて</a>
-        {ofuseUrl && (
-          <>
-            {' ・ '}
-            <a href={ofuseUrl} rel="noopener noreferrer">役に立ったら応援する（OFUSE）</a>
-          </>
-        )}
-      </p>
+    <footer class="footer no-print">
+      <div class="wrap">
+        <p class="footer-title">難病更新ナビ（非公式）</p>
+        <p>
+          個人が作成した非公式のツールです。東京都・区市町村とは関係ありません。内容は{TOKYO_R8.prefecture}「特定医療費更新手続のご案内」{TOKYO_R8.fiscalYearLabel}版（最終確認日 {TOKYO_R8.checkedAt}）をもとにしています。最終的な判断は、同封の案内と区市町村の窓口に従ってください。
+        </p>
+        <p>入力した内容はこの端末のブラウザにだけ保存され、外部には送信されません。</p>
+        <div class="footer-links">
+          <a href="/about/">データの扱いと注意事項</a>
+          <a href={TOKYO_R8.sourceUrl} rel="noopener noreferrer">出典（東京都の案内PDF）</a>
+          <a href={CONTACT_URL} rel="noopener noreferrer">誤りの連絡（X）</a>
+          {OFUSE_URL && <a href={OFUSE_URL} rel="noopener noreferrer">応援する（OFUSE）</a>}
+        </div>
+      </div>
     </footer>
   </body>
 </html>

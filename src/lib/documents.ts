@@ -1,4 +1,4 @@
-import { linkCoversResidentDocs, type Answers } from './answers';
+import { linkCoversResidentDocs, meetsKeishoKogaku, meetsKogakuChoki, type Answers } from './answers';
 import type { DocDef, DocId, Rules } from './rules/tokyo-r8';
 
 /**
@@ -46,8 +46,8 @@ function resolve(id: DocId, a: Answers, rules: Rules): Resolution {
         '印字されている内容が変わっていたら、二重線で訂正する',
       ];
       if (a.under18) notes.push('「申請者（医療券の送付先）」欄は、調書の「保護者」欄と同じ人にする');
-      if (a.keishoKogaku === 'not_eligible') notes.push('「軽症かつ高額」に該当しない欄に☑を入れる（非認定の場合に通知が早く届き、再申請しやすくなる）');
-      if (a.kogakuChoki === 'yes') notes.push('左下の「高額かつ長期」の□に☑を入れる');
+      if (a.medicalCost === 'none') notes.push('「軽症かつ高額」に該当しない欄に☑を入れる（非認定の場合に通知が早く届き、再申請しやすくなる）');
+      if (meetsKogakuChoki(a)) notes.push('左下の「高額かつ長期」の□に☑を入れる');
       if (a.expiry === 'after_within_6m') notes.push('有効期限を過ぎているので、「特定医療費の支給を開始することが適当と考えられる年月日」欄に記入する');
       return { status: 'required', reasons: ['全員が提出します（同封の書類）'], notes };
     }
@@ -182,23 +182,31 @@ function resolve(id: DocId, a: Answers, rules: Rules): Resolution {
         '自己負担上限額管理票（オレンジ色のA5冊子）の、基準額を超えた月の写しを、同封の「コピー添付用紙」の後ろにホチキス留めする',
         '管理票に載っていない月は、療養証明書（医療機関に記入を依頼。費用は自己負担）か、医療費申告書と領収書等の写しで代わりにできる',
       ];
-      const reasons: string[] = [];
-      if (a.keishoKogaku === 'apply') {
-        reasons.push(`「軽症かつ高額」を申請するので提出します（${rules.keishoKogakuThreshold.toLocaleString()}円を超えた月を3か月分以上）`);
-      }
-      if (a.kogakuChoki === 'yes') {
-        reasons.push(`「高額かつ長期」を申請するので提出します（${rules.kogakuChokiThreshold.toLocaleString()}円を超えた月を6か月分以上）`);
+      if (meetsKogakuChoki(a)) {
         notes.push('今の受給者証の期間中から「高額かつ長期」を適用したい場合は、更新とは別に変更申請が必要（出した翌月から適用）');
-      }
-      if (reasons.length > 0) return { status: 'required', reasons, notes };
-      if (a.keishoKogaku === 'unknown' || a.kogakuChoki === 'unknown') {
         return {
-          status: 'optional',
-          reasons: ['医療費が基準を超えた月があるかわからないので、管理票を確認してください。「軽症かつ高額」は認定されるかどうかに関わります'],
+          status: 'required',
+          reasons: [
+            `「高額かつ長期」を申請するので提出します（${rules.kogakuChokiThreshold.toLocaleString()}円を超えた月を6か月分以上）。「軽症かつ高額」の確認にも使われます`,
+          ],
           notes,
         };
       }
-      return { status: 'omitted', reasons: ['「軽症かつ高額」「高額かつ長期」のどちらも申請しないので不要です'] };
+      if (meetsKeishoKogaku(a)) {
+        return {
+          status: 'required',
+          reasons: [`「軽症かつ高額」の確認に使うので提出します（${rules.keishoKogakuThreshold.toLocaleString()}円を超えた月を3か月分以上）`],
+          notes,
+        };
+      }
+      if (a.medicalCost === 'unknown') {
+        return {
+          status: 'optional',
+          reasons: ['医療費が基準を超えた月があるかを管理票で確認してください。「軽症かつ高額」は認定されるかどうかに関わります'],
+          notes,
+        };
+      }
+      return { status: 'omitted', reasons: ['医療費が基準を超えた月がないので不要です'] };
     }
 
     case 'shomanCert': {
@@ -302,12 +310,12 @@ export function deriveConditions(a: Answers, rules: Rules): Condition[] {
   if (!a.welfare && a.allNonTaxable === 'yes') {
     list.push({ id: 'nonTaxable', label: '世帯全員が住民税非課税', detail: '本人の年収が82万6,500円以下なら「低所得Ⅰ」（上限2,500円）、超えるなら「低所得Ⅱ」（上限5,000円）です。' });
   }
-  if (a.keishoKogaku === 'apply') {
-    list.push({ id: 'keishoKogaku', label: '軽症かつ高額', detail: `症状が重症度の基準を満たさなくても、医療費が${rules.keishoKogakuThreshold.toLocaleString()}円を超えた月が12か月に3か月以上あれば認定されます。` });
-  } else if (a.keishoKogaku === 'unknown') {
-    list.push({ id: 'keishoKogakuUnknown', label: '軽症かつ高額：要確認', detail: '症状が落ち着いている人は、これを満たすかどうかで認定・非認定が分かれます。管理票を確認しましょう。' });
+  if (meetsKeishoKogaku(a)) {
+    list.push({ id: 'keishoKogaku', label: '軽症かつ高額', detail: `医療費が${rules.keishoKogakuThreshold.toLocaleString()}円を超えた月が12か月に3か月以上あるので、症状が重症度の基準を満たさなくても認定されます。` });
+  } else if (a.medicalCost === 'unknown') {
+    list.push({ id: 'medicalCostUnknown', label: '医療費の確認が必要', detail: '症状が落ち着いている人は、「軽症かつ高額」を満たすかどうかで認定・非認定が分かれます。管理票を確認しましょう。' });
   }
-  if (a.kogakuChoki === 'yes') {
+  if (meetsKogakuChoki(a)) {
     list.push({ id: 'kogakuChoki', label: '高額かつ長期', detail: '所得区分が一般所得Ⅰ・Ⅱ・上位所得の人は、負担上限月額が下がります（例：一般所得Ⅱは20,000円→10,000円）。' });
   }
   if (a.submitter === 'proxy') list.push({ id: 'proxy', label: '代理人が提出', detail: '委任状が必要です。' });

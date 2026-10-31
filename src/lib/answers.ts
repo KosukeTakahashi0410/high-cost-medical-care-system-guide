@@ -18,6 +18,13 @@ export type Expiry = 'before' | 'after_within_6m' | 'after_over_6m';
 export type Shoman = 'none' | 'self' | 'household' | 'both';
 
 /**
+ * 過去12か月の医療費等総額（10割）。
+ * long_high: 50,000円超が6か月以上（高額かつ長期。軽症かつ高額の基準も満たす）
+ * mild_high: 33,330円超が3か月以上（軽症かつ高額）
+ */
+export type MedicalCost = 'long_high' | 'mild_high' | 'none' | 'unknown';
+
+/**
  * ウィザードの回答。どの条件に当てはまるかだけを持ち、
  * 氏名・番号・金額などの書類の中身は一切持たない。
  */
@@ -41,8 +48,7 @@ export interface Answers {
   abroadOnBaseDate: boolean;
   shoman: Shoman;
   nanbyoHousehold: boolean;
-  keishoKogaku: 'apply' | 'not_eligible' | 'unknown';
-  kogakuChoki: YesNoUnknown;
+  medicalCost: MedicalCost;
 }
 
 export const DEFAULT_ANSWERS: Answers = {
@@ -60,11 +66,16 @@ export const DEFAULT_ANSWERS: Answers = {
   abroadOnBaseDate: false,
   shoman: 'none',
   nanbyoHousehold: false,
-  keishoKogaku: 'unknown',
-  kogakuChoki: 'no',
+  medicalCost: 'unknown',
 };
 
 /** 住民票・保険情報・所得書類を情報連携で省略できるか（氏名変更は情報連携の対象外） */
 export function linkCoversResidentDocs(a: Answers): boolean {
   return a.mynumberLink && !a.nameChanged;
 }
+
+/** 軽症かつ高額の基準（33,330円超が3か月以上）を満たす */
+export const meetsKeishoKogaku = (a: Answers) => a.medicalCost === 'long_high' || a.medicalCost === 'mild_high';
+
+/** 高額かつ長期の基準（50,000円超が6か月以上）を満たす */
+export const meetsKogakuChoki = (a: Answers) => a.medicalCost === 'long_high';

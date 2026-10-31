@@ -45,11 +45,14 @@ describe('Navi（画面の通し操作）', () => {
     expect(root.textContent).toContain('書類チェックリスト');
     expect(root.textContent).toContain('特定医療費支給認定申請書');
     expect(root.textContent).toContain('マイナンバーの情報連携');
+    // 注意点などの details は最初は閉じておく
+    expect(root.querySelectorAll('details').length).toBeGreaterThan(0);
+    expect(root.querySelectorAll('details[open]').length).toBe(0);
 
     // 申請書を提出済みにして保存
     const first = root.querySelector<HTMLInputElement>('.doc input[type=checkbox]');
     click(first);
-    expect(root.textContent).toContain('1 / ');
+    expect(root.querySelector('.tally-num')?.textContent).toBe('1');
     click(button(root, '記録として保存'));
     expect(root.textContent).toContain('記録として保存しました');
 
@@ -82,7 +85,8 @@ describe('Navi（画面の通し操作）', () => {
       }),
     );
     const root = mount();
-    click(button(root, '前回（令和7年度）の答えから始める'));
+    expect(root.textContent).toContain('前回（令和7年度）の記録があります');
+    click(button(root, '前回の答えから始める'));
     expect(root.textContent).toContain('前回の答え');
 
     // 情報連携の質問まで進んで「省略する」に変える
@@ -91,7 +95,7 @@ describe('Navi（画面の通し操作）', () => {
     }
     const link = [...root.querySelectorAll('.option')].find((o) => o.textContent?.includes('省略する（おすすめ）'));
     click(link?.querySelector('input'));
-    click(root.querySelector('button.link'));
+    click(button(root, '残りを飛ばして結果へ'));
 
     expect(root.textContent).toContain('前回（令和7年度）との違い');
     expect(root.textContent).toContain('今回は不要になった');

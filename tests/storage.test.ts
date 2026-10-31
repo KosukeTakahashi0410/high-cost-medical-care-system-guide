@@ -78,9 +78,9 @@ describe('storage', () => {
   });
 
   it('古いデータに新しい質問の答えがなくても既定値で補う', () => {
-    const { kogakuChoki: _, ...oldAnswers } = DEFAULT_ANSWERS;
+    const { medicalCost: _, ...oldAnswers } = DEFAULT_ANSWERS;
     const text = JSON.stringify({ version: 1, records: [{ ...record(2025), answers: oldAnswers }] });
-    expect(parseStore(text).records[0].answers.kogakuChoki).toBe(DEFAULT_ANSWERS.kogakuChoki);
+    expect(parseStore(text).records[0].answers.medicalCost).toBe(DEFAULT_ANSWERS.medicalCost);
   });
 
   it('同じ年度は上書きし、前年度の記録を探せる', () => {

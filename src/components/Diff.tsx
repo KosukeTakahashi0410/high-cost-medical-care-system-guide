@@ -16,48 +16,66 @@ export default function Diff({ diff, prevLabel, docs }: Props) {
   const nothingChanged = diff.changedAnswers.length === 0 && diff.newlyNeeded.length === 0 && diff.noLongerNeeded.length === 0;
 
   return (
-    <section class="card diff">
-      <h2>前回（{prevLabel}）との違い</h2>
+    <section class="section diff">
+      <p class="eyebrow">前回との比較</p>
+      <h2 class="section-title">前回（{prevLabel}）との違い</h2>
       {nothingChanged ? (
-        <p>条件も必要な書類も前回と同じです。前回と同じ書類をそろえれば大丈夫です。</p>
+        <p class="lead">条件も必要な書類も前回と同じです。前回と同じ書類をそろえれば大丈夫です。</p>
       ) : (
-        <>
+        <div class="rows-wrap">
           {diff.changedAnswers.length > 0 && (
-            <>
-              <h3>変わった条件</h3>
-              <ul>
+            <div class="diff-group">
+              <p class="diff-label">変わった条件</p>
+              <ul class="diff-list">
                 {diff.changedAnswers.map((c) => (
                   <li key={c.key}>
-                    {c.title}：<s>{c.before}</s> → <strong>{c.after}</strong>
+                    <span class="diff-sign" aria-hidden="true">
+                      ・
+                    </span>
+                    <span>
+                      {c.title}
+                      <br />
+                      <span class="diff-before">{c.before}</span> → {c.after}
+                    </span>
                   </li>
                 ))}
               </ul>
-            </>
+            </div>
           )}
           {diff.newlyNeeded.length > 0 && (
-            <>
-              <h3>今回から新しく必要</h3>
-              <ul class="plus">
+            <div class="diff-group">
+              <p class="diff-label">今回から新しく必要</p>
+              <ul class="diff-list">
                 {diff.newlyNeeded.map((id) => (
-                  <li key={id}>{name(id)}</li>
+                  <li key={id}>
+                    <span class="diff-sign plus" aria-hidden="true">
+                      ＋
+                    </span>
+                    {name(id)}
+                  </li>
                 ))}
               </ul>
-            </>
+            </div>
           )}
           {diff.noLongerNeeded.length > 0 && (
-            <>
-              <h3>今回は不要になった</h3>
-              <ul class="minus">
+            <div class="diff-group">
+              <p class="diff-label">今回は不要になった</p>
+              <ul class="diff-list">
                 {diff.noLongerNeeded.map((id) => (
-                  <li key={id}>{name(id)}</li>
+                  <li key={id}>
+                    <span class="diff-sign minus" aria-hidden="true">
+                      －
+                    </span>
+                    {name(id)}
+                  </li>
                 ))}
               </ul>
-            </>
+            </div>
           )}
-        </>
+        </div>
       )}
       {diff.submittedLastTime.length > 0 && (
-        <details>
+        <details class="omitted">
           <summary>前回提出した書類（{diff.submittedLastTime.length}件）</summary>
           <ul>
             {diff.submittedLastTime.map((id) => (

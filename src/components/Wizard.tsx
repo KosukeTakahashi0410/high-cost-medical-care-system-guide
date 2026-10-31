@@ -1,6 +1,6 @@
 import { useState } from 'preact/hooks';
 import type { Answers } from '../lib/answers';
-import { optionLabel, visibleOptions, visibleQuestions } from '../lib/questions';
+import { visibleOptions, visibleQuestions } from '../lib/questions';
 
 interface Props {
   answers: Answers;
@@ -10,62 +10,76 @@ interface Props {
   onCancel: () => void;
 }
 
+const pad = (n: number) => String(n).padStart(2, '0');
+
 export default function Wizard({ answers, prevAnswers, onChange, onDone, onCancel }: Props) {
   const [step, setStep] = useState(0);
+  const [dir, setDir] = useState<'forward' | 'back'>('forward');
   const questions = visibleQuestions(answers);
   const index = Math.min(step, questions.length - 1);
   const question = questions[index];
   const options = visibleOptions(question, answers);
   const isLast = index === questions.length - 1;
 
+  function move(to: number) {
+    setDir(to > index ? 'forward' : 'back');
+    setStep(to);
+  }
+
   return (
-    <section class="card wizard" aria-live="polite">
+    <section class="section wizard">
       <div class="progress" aria-hidden="true">
-        <div class="progress-bar" style={{ width: `${((index + 1) / questions.length) * 100}%` }} />
+        <div class="progress-bar" style={{ transform: `scaleX(${(index + 1) / questions.length})` }} />
       </div>
-      <p class="muted small">
-        質問 {index + 1} / {questions.length}
-      </p>
-      <fieldset>
-        <legend>
-          <h2>{question.title}</h2>
-        </legend>
-        {question.help && <p class="help">{question.help}</p>}
-        <div class="options">
-          {options.map((o) => {
-            const selected = answers[question.key] === o.value;
-            const wasPrev = prevAnswers !== undefined && prevAnswers[question.key] === o.value;
-            return (
-              <label class={`option${selected ? ' selected' : ''}`} key={String(o.value)}>
-                <input
-                  type="radio"
-                  name={question.key}
-                  checked={selected}
-                  onChange={() => onChange({ ...answers, [question.key]: o.value })}
-                />
-                <span>{o.label}</span>
-                {wasPrev && <span class="badge">前回の答え</span>}
-              </label>
-            );
-          })}
-        </div>
-      </fieldset>
-      {prevAnswers && (
-        <p class="muted small">前回：{optionLabel(question.key, prevAnswers[question.key])}</p>
-      )}
+      <div class="wizard-head">
+        <p class="eyebrow">
+          質問 {pad(index + 1)} / {pad(questions.length)}
+        </p>
+        {index > 0 && !isLast && (
+          <button class="btn-text small" onClick={onDone}>
+            残りを飛ばして結果へ
+          </button>
+        )}
+      </div>
+
+      <div class="step" data-dir={dir} key={question.key}>
+        <fieldset>
+          <legend>
+            <h2 class="question">{question.title}</h2>
+          </legend>
+          {question.help && <p class="help">{question.help}</p>}
+          <ul class="options">
+            {options.map((o) => {
+              const selected = answers[question.key] === o.value;
+              const wasPrev = prevAnswers !== undefined && prevAnswers[question.key] === o.value;
+              return (
+                <li key={String(o.value)}>
+                  <label class={`option${selected ? ' selected' : ''}`}>
+                    <input
+                      type="radio"
+                      name={question.key}
+                      checked={selected}
+                      onChange={() => onChange({ ...answers, [question.key]: o.value })}
+                    />
+                    <span class="radio" aria-hidden="true" />
+                    <span class="option-label">{o.label}</span>
+                    {wasPrev && <span class="option-prev">前回の答え</span>}
+                  </label>
+                </li>
+              );
+            })}
+          </ul>
+        </fieldset>
+      </div>
+
       <div class="actions">
-        <button onClick={() => (index === 0 ? onCancel() : setStep(index - 1))}>{index === 0 ? 'やめる' : '戻る'}</button>
-        <button class="primary" onClick={() => (isLast ? onDone() : setStep(index + 1))}>
+        <button class="btn btn-primary" onClick={() => (isLast ? onDone() : move(index + 1))}>
           {isLast ? '結果を見る' : '次へ'}
         </button>
+        <button class="btn" onClick={() => (index === 0 ? onCancel() : move(index - 1))}>
+          {index === 0 ? 'やめる' : '戻る'}
+        </button>
       </div>
-      {index > 0 && !isLast && (
-        <p class="small">
-          <button class="link" onClick={onDone}>
-            残りは今の答えのままで結果を見る
-          </button>
-        </p>
-      )}
     </section>
   );
 }
