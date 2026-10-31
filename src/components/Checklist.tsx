@@ -63,7 +63,6 @@ export default function Checklist({ docs, submitted, submittedLastTime, onToggle
 
   return (
     <section class="section checklist">
-      <p class="eyebrow">書類</p>
       <h2 class="section-title">書類チェックリスト</h2>
       <div class="tally" aria-live="polite">
         <span class="tally-num">{done}</span>

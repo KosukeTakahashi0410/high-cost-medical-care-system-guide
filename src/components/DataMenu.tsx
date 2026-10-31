@@ -10,7 +10,7 @@ export default function DataMenu({ onExport, onImport, onClear }: Props) {
       <summary>記録の書き出し・読み込み・削除</summary>
       <div class="data-menu-body">
         <p class="small muted">
-          記録はこのブラウザの中だけに保存され、外部には送信されません。別の端末で使うときや、念のための控えには、ファイルに書き出してください。
+          記録はこの端末のブラウザにだけ保存されます。別の端末で使うときや、念のための控えには、ファイルに書き出してください。
         </p>
         <div class="actions">
           <button class="btn" onClick={onExport}>

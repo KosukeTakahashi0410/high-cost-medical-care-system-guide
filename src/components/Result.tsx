@@ -10,7 +10,6 @@ export default function Result({ conditions, rules }: Props) {
   const isNew = conditions.some((c) => c.id === 'newApplication');
   return (
     <section class="section">
-      <p class="eyebrow">判定</p>
       <h2 class="section-title">あなたに当てはまる条件</h2>
       {isNew && (
         <p class="notice">
@@ -32,13 +31,11 @@ export default function Result({ conditions, rules }: Props) {
 
       <ol class="flow" aria-label="更新の審査の流れ">
         <li>
-          <p class="flow-step">STEP 1</p>
           <p class="flow-title">重症度の基準</p>
           <p class="flow-detail">臨床調査個人票で、症状の程度が基準を満たすか</p>
           <p class="flow-result">満たせば認定</p>
         </li>
         <li>
-          <p class="flow-step">STEP 2</p>
           <p class="flow-title">軽症かつ高額</p>
           <p class="flow-detail">
             満たさなくても、医療費（10割）が{rules.keishoKogakuThreshold.toLocaleString()}円を超えた月が12か月に3か月以上あるか
@@ -46,7 +43,6 @@ export default function Result({ conditions, rules }: Props) {
           <p class="flow-result">あれば認定</p>
         </li>
         <li class="end">
-          <p class="flow-step">どちらもない</p>
           <p class="flow-title">非認定</p>
           <p class="flow-detail">「軽症かつ高額」の書類をそろえれば、再申請できます</p>
           <p class="flow-result">非認定</p>

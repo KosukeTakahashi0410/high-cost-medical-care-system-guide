@@ -1,6 +1,7 @@
 ---
 import '../styles/global.css';
 import { TOKYO_R8 } from '../lib/rules/tokyo-r8';
+import Analytics from '../components/Analytics.astro';
 import { CONTACT_URL, OFUSE_URL } from '../lib/site';
 
 interface Props {
@@ -21,9 +22,10 @@ const {
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content={description} />
     <meta name="referrer" content="no-referrer" />
-    <meta name="theme-color" content="#000000" />
+    <meta name="theme-color" content="#ffffff" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <title>{title}</title>
+    <Analytics />
   </head>
   <body>
     <header class="nav no-print">
@@ -42,7 +44,7 @@ const {
         <p>
           個人が作成した非公式のツールです。東京都・区市町村とは関係ありません。内容は{TOKYO_R8.prefecture}「特定医療費更新手続のご案内」{TOKYO_R8.fiscalYearLabel}版（最終確認日 {TOKYO_R8.checkedAt}）をもとにしています。最終的な判断は、同封の案内と区市町村の窓口に従ってください。
         </p>
-        <p>入力した内容はこの端末のブラウザにだけ保存され、外部には送信されません。</p>
+        <p>入力した答えはこの端末のブラウザにだけ保存され、外部には送信されません。保存されるデータに、個人を特定できる情報は含まれません。</p>
         <div class="footer-links">
           <a href="/about/">データの扱いと注意事項</a>
           <a href={TOKYO_R8.sourceUrl} rel="noopener noreferrer">出典（東京都の案内PDF）</a>

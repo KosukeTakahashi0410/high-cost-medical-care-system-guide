@@ -10,6 +10,7 @@ import DataMenu from './DataMenu';
 import Diff from './Diff';
 import Result from './Result';
 import Wizard from './Wizard';
+import { scrollToElement } from './scroll';
 
 type Screen = 'home' | 'wizard' | 'result';
 
@@ -52,8 +53,18 @@ export default function Navi() {
 
   function go(next: Screen) {
     transition(() => setScreen(next));
-    top.current?.scrollIntoView?.({ block: 'start', behavior: 'smooth' });
   }
+
+  // 画面が切り替わったら、ツールの先頭までスクロールする（最初の表示では動かさない）
+  const firstScreen = useRef(true);
+  useEffect(() => {
+    if (!ready) return;
+    if (firstScreen.current) {
+      firstScreen.current = false;
+      return;
+    }
+    scrollToElement(top.current);
+  }, [screen, ready]);
 
   /** 回答とチェックは、そのたびに下書きとして端末に残す */
   function persist(next: StoreData): boolean {
@@ -140,8 +151,7 @@ export default function Navi() {
       {screen === 'home' && (
         <section class="section screen-in">
           <div>
-            <p class="eyebrow">{rules.fiscalYearLabel}の更新</p>
-            <h2 class="section-title">質問に答えて、書類をそろえる</h2>
+            <h2 class="section-title">{rules.fiscalYearLabel}の更新をはじめる</h2>
             <p class="lead">
               {prev
                 ? `前回（${prev.fiscalYearLabel}）の記録があります。前回の答えを確かめながら進めると、変わった点だけを確認できます。`
@@ -193,10 +203,9 @@ export default function Navi() {
             onToggle={(id, value) => updateDraft(answers, { ...submitted, [id]: value })}
           />
           <section class="section no-print">
-            <p class="eyebrow">記録</p>
             <h2 class="section-title">来年のために残す</h2>
             <p class="lead">
-              保存するのは「どの条件に当てはまり、どの書類を出したか」だけです。氏名や番号などの中身は保存しません。
+              質問への答えと書類のチェック状況を、この端末に保存します。保存されるデータに、個人を特定できる情報は含まれません。
             </p>
             <div class="actions">
               <button class="btn btn-primary" onClick={saveRecord}>

@@ -17,7 +17,6 @@ export default function Diff({ diff, prevLabel, docs }: Props) {
 
   return (
     <section class="section diff">
-      <p class="eyebrow">前回との比較</p>
       <h2 class="section-title">前回（{prevLabel}）との違い</h2>
       {nothingChanged ? (
         <p class="lead">条件も必要な書類も前回と同じです。前回と同じ書類をそろえれば大丈夫です。</p>

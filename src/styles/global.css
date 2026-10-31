@@ -19,12 +19,8 @@
   --hairline: #e6e6e6;
   --link: #0064b7;
 
-  --band-dark: #000000;
   --band-dark-elevated: #121314;
   --on-dark: #ffffff;
-  --body-dark: rgba(255, 255, 255, 0.7);
-  --mute-dark: rgba(229, 229, 229, 0.55);
-  --hairline-dark: rgba(229, 229, 229, 0.2);
 
   --radius-sm: 4px;
   --radius-md: 8px;
@@ -36,34 +32,6 @@
   --font: 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', 'Yu Gothic UI', system-ui, sans-serif;
   color-scheme: light;
   interpolate-size: allow-keywords;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme='light']) {
-    --canvas: #121314;
-    --surface-soft: #181818;
-    --surface-card: #181818;
-    --ink: #ffffff;
-    --body: rgba(255, 255, 255, 0.7);
-    --mute: rgba(229, 229, 229, 0.55);
-    --ash: rgba(229, 229, 229, 0.35);
-    --hairline: rgba(229, 229, 229, 0.16);
-    --link: #53b1ff;
-    color-scheme: dark;
-  }
-}
-
-:root[data-theme='dark'] {
-  --canvas: #121314;
-  --surface-soft: #181818;
-  --surface-card: #181818;
-  --ink: #ffffff;
-  --body: rgba(255, 255, 255, 0.7);
-  --mute: rgba(229, 229, 229, 0.55);
-  --ash: rgba(229, 229, 229, 0.35);
-  --hairline: rgba(229, 229, 229, 0.16);
-  --link: #53b1ff;
-  color-scheme: dark;
 }
 
 *,
@@ -120,8 +88,9 @@ p {
 
 /* ---------- 上部ナビ ---------- */
 .nav {
-  background: var(--band-dark);
-  color: var(--on-dark);
+  background: var(--canvas);
+  color: var(--ink);
+  border-bottom: 1px solid var(--hairline);
 }
 
 .nav .wrap {
@@ -132,7 +101,7 @@ p {
 }
 
 .nav-brand {
-  color: var(--on-dark);
+  color: var(--ink);
   font-weight: 500;
   letter-spacing: 0.06em;
 }
@@ -144,26 +113,26 @@ p {
 .nav-unofficial {
   font-size: 12px;
   font-weight: 500;
-  color: var(--mute-dark);
-  border: 1px solid var(--hairline-dark);
+  color: var(--mute);
+  border: 1px solid var(--ash);
   border-radius: var(--pill);
   padding: 1px 10px;
 }
 
 .nav-link {
   margin-left: auto;
-  color: var(--body-dark);
+  color: var(--body);
   font-size: 14px;
 }
 
 /* ---------- 帯 ---------- */
-.band-dark {
-  background: var(--band-dark);
-  color: var(--on-dark);
+.band-hero {
+  background: var(--canvas);
+  color: var(--ink);
 }
 
 .hero {
-  padding: 72px 0 80px;
+  padding: 72px 0 64px;
 }
 
 .hero h1 {
@@ -174,20 +143,25 @@ p {
 .hero-lead {
   margin-top: 24px;
   max-width: 34em;
-  color: var(--body-dark);
+  color: var(--body);
 }
 
 .hero-note {
   margin-top: 32px;
   padding-top: 16px;
-  border-top: 1px solid var(--hairline-dark);
+  border-top: 1px solid var(--hairline);
   font-size: 13px;
-  color: var(--mute-dark);
+  color: var(--mute);
   max-width: 40em;
 }
 
 .band-light {
-  padding: 56px 0 96px;
+  padding: 24px 0 96px;
+}
+
+.hero + .band-light {
+  border-top: 1px solid var(--hairline);
+  padding-top: 56px;
 }
 
 /* ---------- 共通の部品 ---------- */
@@ -205,7 +179,6 @@ p {
 
 .section-title {
   font-size: clamp(24px, 4.4vw, 32px);
-  margin-top: 8px;
 }
 
 .lead {
@@ -1011,7 +984,7 @@ legend {
 
   .no-print,
   .nav,
-  .band-dark,
+  .band-hero,
   .footer,
   .toast,
   .omitted,

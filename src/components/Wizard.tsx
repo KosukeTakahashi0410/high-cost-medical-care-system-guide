@@ -1,6 +1,7 @@
-import { useState } from 'preact/hooks';
+import { useEffect, useRef, useState } from 'preact/hooks';
 import type { Answers } from '../lib/answers';
 import { visibleOptions, visibleQuestions } from '../lib/questions';
+import { scrollToElement } from './scroll';
 
 interface Props {
   answers: Answers;
@@ -20,6 +21,12 @@ export default function Wizard({ answers, prevAnswers, onChange, onDone, onCance
   const question = questions[index];
   const options = visibleOptions(question, answers);
   const isLast = index === questions.length - 1;
+  const root = useRef<HTMLElement>(null);
+
+  // 次の質問に進んだとき、質問の先頭が画面外なら戻す
+  useEffect(() => {
+    scrollToElement(root.current, true);
+  }, [index]);
 
   function move(to: number) {
     setDir(to > index ? 'forward' : 'back');
@@ -27,7 +34,7 @@ export default function Wizard({ answers, prevAnswers, onChange, onDone, onCance
   }
 
   return (
-    <section class="section wizard">
+    <section class="section wizard" ref={root}>
       <div class="progress" aria-hidden="true">
         <div class="progress-bar" style={{ transform: `scaleX(${(index + 1) / questions.length})` }} />
       </div>

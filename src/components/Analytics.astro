@@ -1,0 +1,27 @@
+---
+import { GA_MEASUREMENT_ID } from '../lib/site';
+// 送るのは閲覧ページなど標準の計測だけ。質問への答えやチェック状況はイベントとして送らない
+---
+
+{
+  GA_MEASUREMENT_ID && (
+    <>
+      <meta name="ga-measurement-id" content={GA_MEASUREMENT_ID} />
+      <script async src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`} />
+    </>
+  )
+}
+<script>
+  const id = document.querySelector('meta[name="ga-measurement-id"]')?.getAttribute('content');
+  if (id) {
+    const w = window as unknown as { dataLayer: unknown[] };
+    w.dataLayer = w.dataLayer || [];
+    // gtag.js は arguments オブジェクトをそのまま受け取る前提
+    function gtag(..._args: unknown[]) {
+      // eslint-disable-next-line prefer-rest-params
+      w.dataLayer.push(arguments);
+    }
+    gtag('js', new Date());
+    gtag('config', id);
+  }
+</script>
