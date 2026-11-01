@@ -22,6 +22,7 @@ import { GA_MEASUREMENT_ID } from '../lib/site';
       w.dataLayer.push(arguments);
     }
     gtag('js', new Date());
-    gtag('config', id);
+    // 自動判定だと公開サフィックス（pages.dev）に Cookie を置こうとして拒否されるため、ホスト名を明示する
+    gtag('config', id, { cookie_domain: location.hostname });
   }
 </script>
