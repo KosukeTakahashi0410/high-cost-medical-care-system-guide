@@ -46,6 +46,11 @@ html {
 
 body {
   margin: 0;
+  /* 中身が短いページでも、フッターを画面の下端に置く */
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
   background: var(--canvas);
   color: var(--ink);
   font-family: var(--font);
@@ -54,6 +59,10 @@ body {
   letter-spacing: 0.02em;
   font-feature-settings: 'palt' 0;
   -webkit-font-smoothing: antialiased;
+}
+
+main {
+  flex: 1 0 auto;
 }
 
 a {
