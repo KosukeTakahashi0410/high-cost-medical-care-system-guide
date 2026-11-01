@@ -27,6 +27,7 @@ npm run preview  # ビルド結果を確認
 - フレームワークのプリセット：Astro
 - ビルドコマンド：`npm run build`
 - 出力ディレクトリ：`dist`
+- 環境変数（Production のみ）：`PUBLIC_GA_MEASUREMENT_ID` に GA4 の測定ID。未設定なら GA は読み込まれない（`.env.example` 参照）
 
 CSPはビルド時に `<meta>` として出力されます（`astro.config.mjs` の `security.csp`）。その他のセキュリティヘッダーは `public/_headers` で設定しています。
 
